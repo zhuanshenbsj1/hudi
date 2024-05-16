@@ -1186,7 +1186,8 @@ public class TestInputFormat {
         new Path(tempFile.getAbsolutePath()),
         Collections.singletonList("partition"),
         "default",
-        conf);
+        conf,
+        null);
   }
 
   @SuppressWarnings("rawtypes")

@@ -121,7 +121,8 @@ public class TestHoodieTableSource {
         new Path(tempFile.getPath()),
         Arrays.asList(conf.getString(FlinkOptions.PARTITION_PATH_FIELD).split(",")),
         "default-par",
-        conf);
+        conf,
+        null);
     InputFormat<RowData, ?> inputFormat = tableSource.getInputFormat();
     assertThat(inputFormat, is(instanceOf(FileInputFormat.class)));
     conf.setString(FlinkOptions.TABLE_TYPE, FlinkOptions.TABLE_TYPE_MERGE_ON_READ);
@@ -338,7 +339,8 @@ public class TestHoodieTableSource {
         new Path(conf.getString(FlinkOptions.PATH)),
         Arrays.asList(conf.getString(FlinkOptions.PARTITION_PATH_FIELD).split(",")),
         "default-par",
-        conf);
+        conf,
+        null);
   }
 
   private ResolvedExpression createLitEquivalenceExpr(String fieldName, int fieldIdx, DataType dataType, Object val) {

@@ -152,8 +152,9 @@ public class HoodieTableSource implements
       Path path,
       List<String> partitionKeys,
       String defaultPartName,
-      Configuration conf) {
-    this(schema, path, partitionKeys, defaultPartName, conf, null, null, null, PrimaryKeyPruners.BUCKET_ID_NO_PRUNING, null, null, null, null);
+      Configuration conf,
+      HoodieTableMetaClient metaClient) {
+    this(schema, path, partitionKeys, defaultPartName, conf, null, null, null, PrimaryKeyPruners.BUCKET_ID_NO_PRUNING, null, null, metaClient, null);
   }
 
   public HoodieTableSource(
