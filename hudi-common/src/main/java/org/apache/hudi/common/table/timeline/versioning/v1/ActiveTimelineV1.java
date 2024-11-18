@@ -485,7 +485,7 @@ public class ActiveTimelineV1 extends BaseTimelineV1 implements HoodieActiveTime
       } else {
         // Ensures old state exists in timeline
         ValidationUtils.checkArgument(storage.exists(getInstantFileNamePath(instantFileNameGenerator.getFileName(fromInstant))),
-            "File " + getInstantFileNamePath(instantFileNameGenerator.getFileName(fromInstant)) + " does not exist!");
+            "Metadata file " + getInstantFileNamePath(instantFileNameGenerator.getFileName(fromInstant)) + " does not exist when transition state.");
         // Use Write Once to create Target File
         if (allowRedundantTransitions) {
           FileIOUtils.createFileInPath(storage, getInstantFileNamePath(instantFileNameGenerator.getFileName(toInstant)), data);
