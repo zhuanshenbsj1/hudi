@@ -265,7 +265,7 @@ object AlterTableCommand extends Logging {
 
     val commitActionType = CommitUtils.getCommitActionType(WriteOperationType.ALTER_SCHEMA, metaClient.getTableType)
     val instantTime = client.createNewInstantTime()
-    client.startCommitWithTime(instantTime, commitActionType)
+    client.startCommitWithTime(instantTime, commitActionType, false)
     client.setOperationType(WriteOperationType.ALTER_SCHEMA)
 
     val hoodieTable = HoodieSparkTable.create(client.getConfig, client.getEngineContext)

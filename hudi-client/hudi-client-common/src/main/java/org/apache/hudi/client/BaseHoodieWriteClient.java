@@ -900,7 +900,7 @@ public abstract class BaseHoodieWriteClient<T, I, K, O> extends BaseHoodieClient
   }
 
   /**
-   * Provides a new commit time for a write operation (insert/update/delete).
+   * Starts a new commit for a write operation (insert/update/delete).
    */
   public String startCommit() {
     HoodieTableMetaClient metaClient = createMetaClient(true);
@@ -908,7 +908,7 @@ public abstract class BaseHoodieWriteClient<T, I, K, O> extends BaseHoodieClient
   }
 
   /**
-   * Provides a new commit time for a write operation (insert/update/delete/insert_overwrite/insert_overwrite_table) with specified action.
+   * Starts a new commit for a write operation (insert/update/delete/insert_overwrite/insert_overwrite_table) with specified action.
    */
   public String startCommit(String actionType, HoodieTableMetaClient metaClient) {
     if (needsUpgradeOrDowngrade(metaClient)) {
@@ -924,32 +924,41 @@ public abstract class BaseHoodieWriteClient<T, I, K, O> extends BaseHoodieClient
   }
 
   /**
-   * Provides a new commit time for a write operation (insert/update/delete/insert_overwrite/insert_overwrite_table) without specified action.
+   * Starts a new commit for a write operation (insert/update/delete/insert_overwrite/insert_overwrite_table) without specified action.
    * @param instantTime Instant time to be generated
    */
   public void startCommitWithTime(String instantTime) {
     HoodieTableMetaClient metaClient = createMetaClient(true);
-    startCommitWithTime(instantTime, metaClient.getCommitActionType(), metaClient);
+    startCommitWithTime(instantTime, metaClient.getCommitActionType(), metaClient, true);
   }
 
   /**
-   * Completes a new commit time for a write operation (insert/update/delete/insert_overwrite/insert_overwrite_table) with specified action.
+   * Starts a new commit for a write operation (insert/update/delete/insert_overwrite/insert_overwrite_table) with specified action.
    */
   public void startCommitWithTime(String instantTime, String actionType) {
-    HoodieTableMetaClient metaClient = createMetaClient(true);
-    startCommitWithTime(instantTime, actionType, metaClient);
+    startCommitWithTime(instantTime, actionType, true);
   }
 
   /**
-   * Starts a new commit time for a write operation (insert/update/delete) with specified action.
+   * Starts a new commit for a write operation (insert/update/delete/insert_overwrite/insert_overwrite_table) with specified action.
    */
-  private void startCommitWithTime(String instantTime, String actionType, HoodieTableMetaClient metaClient) {
+  public void startCommitWithTime(String instantTime, String actionType, Boolean needsRollback) {
+    HoodieTableMetaClient metaClient = createMetaClient(true);
+    startCommitWithTime(instantTime, actionType, metaClient, needsRollback);
+  }
+
+  /**
+   * Starts a new commit for a write operation (insert/update/delete) with specified action.
+   */
+  private void startCommitWithTime(String instantTime, String actionType, HoodieTableMetaClient metaClient, Boolean needsRollback) {
     if (needsUpgradeOrDowngrade(metaClient)) {
       // unclear what instant to use, since upgrade does have a given instant.
       executeUsingTxnManager(Option.empty(), () -> tryUpgrade(metaClient, Option.empty()));
     }
-    CleanerUtils.rollbackFailedWrites(config.getFailedWritesCleanPolicy(),
-        HoodieTimeline.COMMIT_ACTION, () -> tableServiceClient.rollbackFailedWrites());
+    if (needsRollback) {
+      CleanerUtils.rollbackFailedWrites(config.getFailedWritesCleanPolicy(),
+          HoodieTimeline.COMMIT_ACTION, () -> tableServiceClient.rollbackFailedWrites());
+    }
     startCommit(instantTime, actionType, metaClient);
   }
 
@@ -1595,7 +1604,7 @@ public abstract class BaseHoodieWriteClient<T, I, K, O> extends BaseHoodieClient
     Schema schema = AvroInternalSchemaConverter.convert(newSchema, getAvroRecordQualifiedName(config.getTableName()));
     String commitActionType = CommitUtils.getCommitActionType(WriteOperationType.ALTER_SCHEMA, metaClient.getTableType());
     String instantTime = createNewInstantTime();
-    startCommitWithTime(instantTime, commitActionType, metaClient);
+    startCommitWithTime(instantTime, commitActionType, metaClient, false);
     config.setSchema(schema.toString());
     HoodieActiveTimeline timeLine = metaClient.getActiveTimeline();
     HoodieInstant requested = metaClient.createNewInstant(State.REQUESTED, commitActionType, instantTime);
